@@ -7,26 +7,32 @@ export class EditorPage {
     this.bodyInput = page.getByPlaceholder("Write your article (in markdown)");
     this.tagsInput = page.getByPlaceholder("Enter tags");
     this.publishButton = page.getByRole("button", { name: "Publish Article" });
+    this.updateButton = page.getByRole("button", { name: "Update Article" });
 
+  }
+
+  // заполнение формы статьи
+  async fillArticleForm(article) {
+    const { title, description, body, tag } = article;
+
+    await this.titleInput.fill(title);
+    await this.descriptionInput.fill(description);
+    await this.bodyInput.fill(body);
+    await this.tagsInput.fill(tag);
   }
 
   // создание новой статьи
   async createArticle(article) {
-
-    const { title, description, body, tag } = article;
-
-    await this.titleInput.click();
-    await this.titleInput.fill(title);
-    await this.descriptionInput.click();
-    await this.descriptionInput.fill(description);
-    await this.bodyInput.click();
-    await this.bodyInput.fill(body);
-    await this.tagsInput.click();
-    await this.tagsInput.fill(tag);
+    await this.fillArticleForm(article);
     await this.publishButton.click();
-    // TODO созданная статья долго прогружается
-    await this.page.waitForTimeout(5000);
+    await this.page.waitForLoadState('networkidle');
+}
 
-  }
+  // обновление статьи
+  async updateArticle(article) {
+    await this.fillArticleForm(article);
+    await this.updateButton.click();
+    await this.page.waitForLoadState('networkidle');
+}
 
 }

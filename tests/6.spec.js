@@ -11,19 +11,23 @@ import { MyProfilePage } from "@/pages/profile.page";
 import { MySettingsPage } from "@/pages/settings.page";
 
 // генерация нового пользователя при регистрации
-let user = {
-  email: faker.internet.email(),
-  password: faker.internet.password(),
-  username: faker.person.lastName(),
-  bio: faker.person.bio(),
-};
+function createUser() {
+  return {
+    email: faker.internet.email(),
+    password: faker.internet.password(),
+    username: faker.person.lastName(),
+    bio: faker.person.bio(),
+  };
+}
 
 // генерация новой статьи при публикации
-let myArticle = {
-  title: faker.lorem.sentence(),
-  description: faker.lorem.sentence(),
-  body: faker.lorem.paragraph(),
-  tag: faker.lorem.word(),
+function createArticle() {
+  return {
+    title: faker.lorem.sentence(),
+    description: faker.lorem.sentence(),
+    body: faker.lorem.paragraph(),
+    tag: faker.lorem.word(),
+  };
 }
 
 // регистрация нового пользователя
@@ -32,11 +36,13 @@ test("пользователь может зарегистрироваться",
   const mainPage = new MainPage(page);
   const register = new RegisterPage(page);
   const yourFeed = new YourFeedPage(page);
+  
 
   await mainPage.open();
   await mainPage.gotoRegister();
-  await register.signUp(user);
-  await expect(yourFeed.getProfileName()).toContainText(user.username);
+  const userData = createUser();
+  await register.signUp(userData);
+  await expect(yourFeed.getProfileName()).toContainText(userData.username);   
 
 });
 
@@ -71,20 +77,23 @@ test("авторизованный пользователь может напи�
   const yourFeed = new YourFeedPage(page);
   const article = new ArticlePage(page);
   const editor = new EditorPage(page);
+  const articleData = createArticle();
 
   await mainPage.open();
   await mainPage.gotoLogin();
   await login.signInStaticUser();
   await expect(yourFeed.getStaticName()).toBeVisible();
   await mainPage.gotoNewArticle();
-  await editor.createArticle(myArticle);
-  await expect(article.getArticleName()).toContainText(myArticle.title);
+  await editor.createArticle(articleData);
+  await expect(article.getArticleName()).toContainText(articleData.title);
 
 }); 
 
 // через регистрацию нового пользователя
 test("пользователь прошедший регистрацию может написать статью", async ({ page }) => {
   
+  const user = createUser();
+  const articleData = createArticle();
   const mainPage = new MainPage(page);
   const yourFeed = new YourFeedPage(page);
   const article = new ArticlePage(page);
@@ -96,8 +105,8 @@ test("пользователь прошедший регистрацию мож�
   await register.signUp(user);
   await expect(yourFeed.getProfileName()).toContainText(user.username);
   await mainPage.gotoNewArticle();
-  await editor.createArticle(myArticle);
-  await expect(article.getArticleName()).toContainText(myArticle.title);
+  await editor.createArticle(articleData);
+  await expect(article.getArticleName()).toContainText(articleData.title);
 
 }); 
 
@@ -108,14 +117,16 @@ test("пользователь может увидеть свою статью �
   const editor = new EditorPage(page);
   const register = new RegisterPage(page);
   const myProfile = new MyProfilePage(page);
+  const user = createUser();
+  const articleData = createArticle();
 
   await mainPage.open();
   await mainPage.gotoRegister();
   await register.signUp(user);
   await mainPage.gotoNewArticle();
-  await editor.createArticle(myArticle);
+  await editor.createArticle(articleData);
   await mainPage.gotoProfile();
-  await expect(myProfile.getMyArticleByTitle(myArticle.title)).toBeVisible();
+  await expect(myProfile.getMyArticleByTitle(articleData.title)).toBeVisible();
 
 }); 
 
@@ -125,6 +136,8 @@ test("смена имени после регистрации", async ({ page })
   const mainPage = new MainPage(page);
   const register = new RegisterPage(page);
   const mySettings = new MySettingsPage(page);
+  const profile = new MyProfilePage(page);
+  const user = createUser();
 
   await mainPage.open();
   await mainPage.gotoRegister();
@@ -132,5 +145,58 @@ test("смена имени после регистрации", async ({ page })
   await mainPage.gotoSettings();
   await mySettings.updateSettings(user);
   await expect(mySettings.getProfileName()).toHaveValue(user.username);
+  await mainPage.gotoProfile();
+  await expect(profile.getProfileName()).toHaveText(user.username);
 
 });
+
+// написанную статью можно удалить
+test("после создания статью можно удалить", async ({ page }) => {
+  
+  const mainPage = new MainPage(page);
+  const editor = new EditorPage(page);
+  const register = new RegisterPage(page);
+  const article = new ArticlePage(page);
+
+  await mainPage.open();
+  await mainPage.gotoRegister();
+
+  const userData = createUser();
+  
+  await register.signUp(userData);
+  await mainPage.gotoNewArticle();
+
+  const articleData = createArticle();
+  
+  await editor.createArticle(articleData);
+  await expect(article.getArticleName()).toContainText(articleData.title);
+  await article.deleteArticle();
+  await expect(article.getArticleName()).toBeHidden();
+
+}); 
+
+// написанную статью можно изменить
+test("созданную статью можно изменить", async ({ page }) => {
+  
+  const mainPage = new MainPage(page);
+  const editor = new EditorPage(page);
+  const register = new RegisterPage(page);
+  const article = new ArticlePage(page);
+
+  await mainPage.open();
+  await mainPage.gotoRegister();
+
+  const userData = createUser();
+
+  await register.signUp(userData);
+  await mainPage.gotoNewArticle();
+
+  const articleData = createArticle();
+  
+  await editor.createArticle(articleData);
+  await expect(article.getArticleName()).toContainText(articleData.title);
+  await article.editArticle();
+  await editor.updateArticle(articleData);
+  await expect(article.getArticleName()).toContainText(articleData.title);
+
+}); 

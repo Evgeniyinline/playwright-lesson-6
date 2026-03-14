@@ -8,7 +8,7 @@ export class MyProfilePage {
   }
 
   // получаем имя пользователя из его профиля
-  getMyProfileName() {
+  getProfileName() {
     return this.myProfileName;
 
   }
