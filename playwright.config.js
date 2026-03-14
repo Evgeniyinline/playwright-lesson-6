@@ -6,7 +6,7 @@ require('dotenv').config();
 /** @type {import('@playwright/test').PlaywrightTestConfig} */
 const config = {
   use: {
-    headless: true,
+    headless: false,
   },
 };
 
