@@ -157,17 +157,13 @@ test("после создания статью можно удалить", async
   const editor = new EditorPage(page);
   const register = new RegisterPage(page);
   const article = new ArticlePage(page);
+  const userData = createUser();
+  const articleData = createArticle();
 
   await mainPage.open();
   await mainPage.gotoRegister();
-
-  const userData = createUser();
-  
   await register.signUp(userData);
   await mainPage.gotoNewArticle();
-
-  const articleData = createArticle();
-  
   await editor.createArticle(articleData);
   await expect(article.getArticleName()).toContainText(articleData.title);
   await article.deleteArticle();
@@ -182,17 +178,13 @@ test("созданную статью можно изменить", async ({ pag
   const editor = new EditorPage(page);
   const register = new RegisterPage(page);
   const article = new ArticlePage(page);
-
-  await mainPage.open();
-  await mainPage.gotoRegister();
-
   const userData = createUser();
-
-  await register.signUp(userData);
-  await mainPage.gotoNewArticle();
-
   const articleData = createArticle();
   
+  await mainPage.open();
+  await mainPage.gotoRegister();
+  await register.signUp(userData);
+  await mainPage.gotoNewArticle();  
   await editor.createArticle(articleData);
   await expect(article.getArticleName()).toContainText(articleData.title);
   await article.editArticle();
