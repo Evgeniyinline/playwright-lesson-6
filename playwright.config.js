@@ -1,16 +1,6 @@
 // @ts-check
 import { defineConfig, devices } from '@playwright/test';
 
-require('dotenv').config();
-
-/** @type {import('@playwright/test').PlaywrightTestConfig} */
-const config = {
-  use: {
-    headless: true,
-  },
-};
-
-module.exports = config;
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
