@@ -1,8 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 import { App } from "@/pages/app.page.js";
-import { UserBuilder } from "@/helpers/builders/index.js";
-import { ArticleBuilder } from "@/helpers/builders/index.js";
+import { UserBuilder, ArticleBuilder } from "@/helpers/builders/index.js";
 
 // регистрация нового пользователя
 test("пользователь может зарегистрироваться", async ({ page }) => {
