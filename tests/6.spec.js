@@ -1,194 +1,147 @@
 import { test, expect } from "@playwright/test";
-import { faker } from "@faker-js/faker";
 
-import { MainPage } from "@/pages/main.page";
-import { RegisterPage } from "@/pages/register.page";
-import { YourFeedPage } from "@/pages/yourfeed.page";
-import { ArticlePage } from "@/pages/article.page";
-import { LoginPage } from "@/pages/login.page";
-import { EditorPage } from "@/pages/editor.page";
-import { MyProfilePage } from "@/pages/profile.page";
-import { MySettingsPage } from "@/pages/settings.page";
-
-// генерация нового пользователя при регистрации
-function createUser() {
-  return {
-    email: faker.internet.email(),
-    password: faker.internet.password(),
-    username: faker.person.lastName(),
-    bio: faker.person.bio(),
-  };
-}
-
-// генерация новой статьи при публикации
-function createArticle() {
-  return {
-    title: faker.lorem.sentence(),
-    description: faker.lorem.sentence(),
-    body: faker.lorem.paragraph(),
-    tag: faker.lorem.word(),
-  };
-}
+import { App } from "@/pages/app.page.js";
+import { UserBuilder } from "@/helpers/builders/index.js";
+import { ArticleBuilder } from "@/helpers/builders/index.js";
 
 // регистрация нового пользователя
 test("пользователь может зарегистрироваться", async ({ page }) => {
-  
-  const mainPage = new MainPage(page);
-  const register = new RegisterPage(page);
-  const yourFeed = new YourFeedPage(page);
-  
 
-  await mainPage.open();
-  await mainPage.gotoRegister();
-  const userData = createUser();
-  await register.signUp(userData);
-  await expect(yourFeed.getProfileName()).toContainText(userData.username);   
+  const app = new App(page);
+  const user = new UserBuilder().withEmail().withPassword().withUsername().build();
+
+  await app.mainPage.open();
+  await app.mainPage.gotoRegister();
+  await app.registerPage.signUp(user);
+  await expect(app.yourFeedPage.getProfileName()).toContainText(user.username);   
 
 });
 
 // неавторизованный пользователь может смотреть статьи
 test("не авторизованный пользователь может смотреть статьи", async ({ page }) => {
   
-  const mainPage = new MainPage(page);
-  const article = new ArticlePage(page);
+  const app = new App(page);
 
-  await mainPage.open();
-  await mainPage.gotoCheckArticles();
-  await expect(article.getArticleName()).toBeVisible();
+  await app.mainPage.open();
+  await app.mainPage.gotoCheckArticles();
+  await expect(app.articlePage.getArticleName()).toBeVisible();
 
 });
 
 // проверка фильтрации ленты по первому тегу из списка
 test("фильтрация по выбранному тегу", async ({ page }) => {
   
-  const mainPage = new MainPage(page);
+  const app = new App(page);
 
-  await mainPage.open();
-  await mainPage.clickFirstTag();
-  await expect(mainPage.getActiveTag()).toBeVisible();
+  await app.mainPage.open();
+  await app.mainPage.clickFirstTag();
+  await expect(app.mainPage.getActiveTag()).toBeVisible();
 
 });
 
 // авторизация через статичного юзера из .env
 test("авторизованный пользователь может написать статью", async ({ page }) => {
   
-  const mainPage = new MainPage(page);
-  const login = new LoginPage(page);
-  const yourFeed = new YourFeedPage(page);
-  const article = new ArticlePage(page);
-  const editor = new EditorPage(page);
-  const articleData = createArticle();
-
-  await mainPage.open();
-  await mainPage.gotoLogin();
-  await login.signInStaticUser();
-  await expect(yourFeed.getStaticName()).toBeVisible();
-  await mainPage.gotoNewArticle();
-  await editor.createArticle(articleData);
-  await expect(article.getArticleName()).toContainText(articleData.title);
+  const app = new App(page);
+  const articleData = new ArticleBuilder().withTitle().withDescription().withBody().withTag().build();
+  
+  await app.mainPage.open();
+  await app.mainPage.gotoLogin();
+  await app.loginPage.signInStaticUser();
+  await expect(app.yourFeedPage.getStaticName()).toBeVisible();
+  await app.mainPage.gotoNewArticle();
+  await app.editorPage.createArticle(articleData);
+  await expect(app.articlePage.getArticleName()).toContainText(articleData.title);
 
 }); 
 
 // через регистрацию нового пользователя
 test("пользователь прошедший регистрацию может написать статью", async ({ page }) => {
   
-  const user = createUser();
-  const articleData = createArticle();
-  const mainPage = new MainPage(page);
-  const yourFeed = new YourFeedPage(page);
-  const article = new ArticlePage(page);
-  const editor = new EditorPage(page);
-  const register = new RegisterPage(page);
+  const app = new App(page);
+  const user = new UserBuilder().withEmail().withPassword().withUsername().build();
+  const articleData = new ArticleBuilder().withTitle().withDescription().withBody().withTag().build();
 
-  await mainPage.open();
-  await mainPage.gotoRegister();
-  await register.signUp(user);
-  await expect(yourFeed.getProfileName()).toContainText(user.username);
-  await mainPage.gotoNewArticle();
-  await editor.createArticle(articleData);
-  await expect(article.getArticleName()).toContainText(articleData.title);
+  await app.mainPage.open();
+  await app.mainPage.gotoRegister();
+  await app.registerPage.signUp(user);
+  await expect(app.yourFeedPage.getProfileName()).toContainText(user.username);
+  await app.mainPage.gotoNewArticle();
+  await app.editorPage.createArticle(articleData);
+  await expect(app.articlePage.getArticleName()).toContainText(articleData.title);
 
 }); 
 
 // написанная статья отображается в профиле пользователя
 test("пользователь может увидеть свою статью в своем профиле", async ({ page }) => {
   
-  const mainPage = new MainPage(page);
-  const editor = new EditorPage(page);
-  const register = new RegisterPage(page);
-  const myProfile = new MyProfilePage(page);
-  const user = createUser();
-  const articleData = createArticle();
+  const app = new App(page);
+  const user = new UserBuilder().withEmail().withPassword().withUsername().build();
+  const articleData = new ArticleBuilder().withTitle().withDescription().withBody().withTag().build();
 
-  await mainPage.open();
-  await mainPage.gotoRegister();
-  await register.signUp(user);
-  await mainPage.gotoNewArticle();
-  await editor.createArticle(articleData);
-  await mainPage.gotoProfile();
-  await expect(myProfile.getMyArticleByTitle(articleData.title)).toBeVisible();
+  await app.mainPage.open();
+  await app.mainPage.gotoRegister();
+  await app.registerPage.signUp(user);
+  await expect(app.yourFeedPage.getProfileName()).toContainText(user.username);
+  await app.mainPage.gotoNewArticle();
+  await app.editorPage.createArticle(articleData);
+  await app.mainPage.gotoProfile();
+  await expect(app.myProfilePage.getMyArticleByTitle(articleData.title)).toBeVisible();
 
 }); 
 
 // зарегистрированный пользователь может сменить имя/почту/пароль
 test("смена имени после регистрации", async ({ page }) => {
   
-  const mainPage = new MainPage(page);
-  const register = new RegisterPage(page);
-  const mySettings = new MySettingsPage(page);
-  const profile = new MyProfilePage(page);
-  const user = createUser();
+  const app = new App(page);
+  const user = new UserBuilder().withEmail().withPassword().withUsername().withBio().build();
 
-  await mainPage.open();
-  await mainPage.gotoRegister();
-  await register.signUp(user);
-  await mainPage.gotoSettings();
-  await mySettings.updateSettings(user);
-  await expect(mySettings.getProfileName()).toHaveValue(user.username);
-  await mainPage.gotoProfile();
-  await expect(profile.getProfileName()).toHaveText(user.username);
+  await app.mainPage.open();
+  await app.mainPage.gotoRegister();
+  await app.registerPage.signUp(user);
+  await app.mainPage.gotoSettings();
+  await app.mySettingsPage.updateSettings(user);
+  await expect(app.mySettingsPage.getProfileName()).toHaveValue(user.username);
+  await app.mainPage.gotoProfile();
+  await expect(app.myProfilePage.getProfileName()).toHaveText(user.username); 
 
 });
 
 // написанную статью можно удалить
 test("после создания статью можно удалить", async ({ page }) => {
   
-  const mainPage = new MainPage(page);
-  const editor = new EditorPage(page);
-  const register = new RegisterPage(page);
-  const article = new ArticlePage(page);
-  const userData = createUser();
-  const articleData = createArticle();
+  const app = new App(page);
 
-  await mainPage.open();
-  await mainPage.gotoRegister();
-  await register.signUp(userData);
-  await mainPage.gotoNewArticle();
-  await editor.createArticle(articleData);
-  await expect(article.getArticleName()).toContainText(articleData.title);
-  await article.deleteArticle();
-  await expect(article.getArticleName()).toBeHidden();
+  const userData = new UserBuilder().withEmail().withPassword().withUsername().build();
+  const articleData = new ArticleBuilder().withTitle().withDescription().withBody().withTag().build(); 
+
+  await app.mainPage.open();
+  await app.mainPage.gotoRegister();
+  await app.registerPage.signUp(userData);
+  await app.mainPage.gotoNewArticle();
+  await app.editorPage.createArticle(articleData);
+  await expect(app.articlePage.getArticleName()).toContainText(articleData.title);
+  await app.articlePage.deleteArticle();
+  await expect(app.articlePage.getArticleName()).toBeHidden();
 
 }); 
 
 // написанную статью можно изменить
 test("созданную статью можно изменить", async ({ page }) => {
   
-  const mainPage = new MainPage(page);
-  const editor = new EditorPage(page);
-  const register = new RegisterPage(page);
-  const article = new ArticlePage(page);
-  const userData = createUser();
-  const articleData = createArticle();
+  const app = new App(page);
+
+  const userData = new UserBuilder().withEmail().withPassword().withUsername().build();
+  const articleData = new ArticleBuilder().withTitle().withDescription().withBody().withTag().build();
   
-  await mainPage.open();
-  await mainPage.gotoRegister();
-  await register.signUp(userData);
-  await mainPage.gotoNewArticle();  
-  await editor.createArticle(articleData);
-  await expect(article.getArticleName()).toContainText(articleData.title);
-  await article.editArticle();
-  await editor.updateArticle(articleData);
-  await expect(article.getArticleName()).toContainText(articleData.title);
+  await app.mainPage.open();
+  await app.mainPage.gotoRegister();
+  await app.registerPage.signUp(userData);
+  await app.mainPage.gotoNewArticle();  
+  await app.editorPage.createArticle(articleData);
+  await expect(app.articlePage.getArticleName()).toContainText(articleData.title);
+  await app.articlePage.editArticle();
+  await app.editorPage.updateArticle(articleData);
+  await expect(app.articlePage.getArticleName()).toContainText(articleData.title);
 
 }); 
