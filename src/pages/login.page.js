@@ -10,8 +10,8 @@ export class LoginPage {
 
   // авторизация через статичного юзера из .env
   async signInStaticUser() {
-    await this.emailInput.fill(process.env.EMAIL);
-    await this.passwordInput.fill(process.env.PASSWORD);
+    await this.emailInput.fill('pw-lesson6eorlov@test.com');
+    await this.passwordInput.fill('pw-lesson6eorlov@test.com');
     await this.signInButton.click();
 
   }
