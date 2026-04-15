@@ -33,12 +33,17 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
+  globalSetup: './tests/global.setup.js',
 
   /* Configure projects for major browsers */
   projects: [
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+    },
+        {
+      name: 'setup',
+      testMatch: ['**/global.setup.js'],
     },
 
     // {
