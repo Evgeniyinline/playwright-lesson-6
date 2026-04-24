@@ -1,4 +1,5 @@
-import { test, expect } from "@playwright/test";
+import { expect } from "@playwright/test";
+import { test } from "@/helpers/fixtures/fixture.js";
 
 import { App } from "@/pages/app.page.js";
 import { UserBuilder, ArticleBuilder } from "@/helpers/builders/index.js";
@@ -144,3 +145,13 @@ test("созданную статью можно изменить", async ({ pag
   await expect(app.articlePage.getArticleName()).toContainText(articleData.title);
 
 }); 
+
+test("пользователь может зарегистрироваться facade + fixture", async ({ app }) => {
+
+  const user = new UserBuilder().withEmail().withPassword().withUsername().build();
+
+  await app.mainPage.gotoRegister();
+  await app.registerPage.signUp(user);
+  await expect(app.yourFeedPage.getProfileName()).toContainText(user.username);   
+
+});

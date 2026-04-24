@@ -1,16 +1,6 @@
 // @ts-check
 import { defineConfig, devices } from '@playwright/test';
 
-require('dotenv').config();
-
-/** @type {import('@playwright/test').PlaywrightTestConfig} */
-const config = {
-  use: {
-    headless: false,
-  },
-};
-
-module.exports = config;
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
@@ -33,7 +23,7 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
+  reporter: [['html'], ['allure-playwright']],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('')`. */
@@ -43,9 +33,15 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
+  globalSetup: './tests/global.setup.js',
 
   /* Configure projects for major browsers */
   projects: [
+    {
+      name: 'API',
+      testMatch: ['**/global.setup.js'],
+    },
+    
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
