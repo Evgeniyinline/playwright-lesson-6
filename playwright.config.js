@@ -38,12 +38,13 @@ export default defineConfig({
   /* Configure projects for major browsers */
   projects: [
     {
+      name: 'API',
+      testMatch: ['**/global.setup.js'],
+    },
+    
+    {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-    },
-        {
-      name: 'setup',
-      testMatch: ['**/global.setup.js'],
     },
 
     // {

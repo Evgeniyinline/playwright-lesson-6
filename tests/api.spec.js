@@ -1,8 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { Api } from "@/services/api.services.js";
 
-const urlApi = "https://apichallenges.eviltester.com";
-
 test("setup получить токен доступа", async ({ request }) => {
   // получить ключ авторизации
   const api = new Api(request);
